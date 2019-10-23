@@ -24,6 +24,7 @@ public class  Bot extends TelegramLongPollingBot{
             //Извлекаем текст входящего сообщения
             inText = update.getMessage().getText();
         }
+        command(inText, update);
 
     }
 
@@ -36,12 +37,12 @@ public class  Bot extends TelegramLongPollingBot{
                 Message inMessage = update.getMessage();
                 dataString = update.getMessage().getText();
             }
-            /*sendMessage("Введите напоминание:");
+            sendMessage("Введите напоминание:");
             if (update.hasMessage() && update.getMessage().hasText()){
                 Message inMessage = update.getMessage();
                 reminder = update.getMessage().getText();
             }
-            sendMessage(dataString + " " + reminder);*/
+            sendMessage(dataString + " " + reminder);
 
         }
     }
