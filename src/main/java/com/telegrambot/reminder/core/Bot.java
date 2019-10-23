@@ -9,6 +9,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 public class  Bot extends TelegramLongPollingBot{
     private long chatId;
     private String inText;
+    private int key = 0;
+    private String stringData;
+    private String stringReminder;
 
 
     /** Метод-обработчик поступающих сообщений. @param update объект, содержащий информацию о входящем сообщений*/
@@ -16,35 +19,36 @@ public class  Bot extends TelegramLongPollingBot{
     public void onUpdateReceived(Update update) {
 
         //проверяем есть ли сообщение и текстовое ли оно
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            //Извлекаем объект входящего сообщения
-            Message inMessage = update.getMessage();
-            //Извлекаем id чата
-            chatId = update.getMessage().getChatId();
-            //Извлекаем текст входящего сообщения
-            inText = update.getMessage().getText();
+        if (!update.hasMessage() || !update.getMessage().hasText())
+            return;
+        //Извлекаем объект входящего сообщения
+        Message inMessage = update.getMessage();
+        //Извлекаем id чата
+        chatId = update.getMessage().getChatId();
+        //Извлекаем текст входящего сообщения
+        inText = update.getMessage().getText();
+        if (key == 1){
+            toDataBase(inText);
         }
-        command(inText, update);
+        commandDate(inText);
+
+
+
 
     }
 
-    public void command(String inText, Update update){
+    public void commandDate(String inText){
         if (inText.contains("/add")){
-            String dataString = "r";
-            String reminder = "rr";
-            sendMessage("Введите дату, на которую вы хотите выставить напоминание, в следующем формате: ДД-ММ-ГГГГ");
-            if (update.hasMessage() && update.getMessage().hasText()) {
-                Message inMessage = update.getMessage();
-                dataString = update.getMessage().getText();
-            }
-            sendMessage("Введите напоминание:");
-            if (update.hasMessage() && update.getMessage().hasText()){
-                Message inMessage = update.getMessage();
-                reminder = update.getMessage().getText();
-            }
-            sendMessage(dataString + " " + reminder);
-
+            sendMessage("Введите дату в формате ДД-ММ-ГГГГ и текст напоминания по следующему примеру:'22-08-2019, купить хлеб");
+            key = 1;
         }
+    }
+    public void toDataBase(String inText){
+        key = 0;
+        String [] parts = inText.split(",");
+        stringData = parts[0];
+        stringReminder = parts[1];
+        sendMessage(stringData + " " + stringReminder);
     }
     public void sendMessage (String outText){
         try {
