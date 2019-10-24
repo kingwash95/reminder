@@ -6,6 +6,13 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 public class  Bot extends TelegramLongPollingBot{
     private long chatId;
     private String inText;
@@ -49,7 +56,48 @@ public class  Bot extends TelegramLongPollingBot{
         stringData = parts[0];
         stringReminder = parts[1];
         sendMessage(stringData + " " + stringReminder);
+        Date dateSql = getDate(stringData);
+        try
+        {
+            // create a mysql database connection
+            String myDriver = "org.postgresql.Driver";
+            String myUrl = "jdbc:postgresql://localhost:5432/reminder";
+            Class.forName(myDriver);
+            Connection conn = DriverManager.getConnection(myUrl, "postgres", "admin");
+
+            String query = " INSERT INTO notes (chatid, date ,text) VALUES (?,?,?)";
+
+            // create the mysql insert preparedstatement
+            PreparedStatement preparedStmt = conn.prepareStatement(query);
+            preparedStmt.setLong (1, chatId);
+            preparedStmt.setDate (2, dateSql );
+            preparedStmt.setString   (3, stringReminder);
+
+
+            // execute the preparedstatement
+            preparedStmt.execute();
+
+            conn.close();
+        }
+        catch (Exception e)
+        {
+            System.err.println("Got an exception!");
+            System.err.println(e.getMessage());
+        }
     }
+
+    public java.sql.Date getDate(String stringData){
+        Date dateSql = null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            dateSql = java.sql.Date.valueOf(String.valueOf(dateFormat.parse(stringData)));
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return dateSql;
+    }
+
     public void sendMessage (String outText){
         try {
                 //Создаем исходящее сообщение
