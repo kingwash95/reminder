@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -86,11 +87,14 @@ public class  Bot extends TelegramLongPollingBot{
         }
     }
 
-    public java.sql.Date getDate(String stringData){
+    public Date getDate(String stringData){
         Date dateSql = null;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         try {
-            dateSql = java.sql.Date.valueOf(String.valueOf(dateFormat.parse(stringData)));
+            DateFormat dF = new SimpleDateFormat("dd-MM-yyyy"); //data in form is in this format
+            java.util.Date datejava = dF.parse(stringData);  // string data is converted into java util date
+            DateFormat dFsql = new SimpleDateFormat("yyyy-MM-dd"); //converted date is reformatted for conversion to sql.date
+            String ndt = dFsql.format(datejava); // java util date is converted to compatible java sql date
+            dateSql = Date.valueOf(ndt);  // finally data from the form is convered to java sql. date for placing in database
 
         } catch (ParseException e) {
             e.printStackTrace();
