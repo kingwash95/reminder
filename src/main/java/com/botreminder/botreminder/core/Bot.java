@@ -1,26 +1,31 @@
-package com.telegrambot.reminder.core;
+package com.botreminder.botreminder.core;
 
+import com.botreminder.botreminder.database.entity.Records;
+import com.botreminder.botreminder.database.service.RecordsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+
+
 public class  Bot extends TelegramLongPollingBot{
+    @Autowired
+    private RecordsService recordsService;
+
     private long chatId;
     private String inText;
     private int key = 0;
     private String stringData;
     private String stringReminder;
-    private String stringTime;
+   // private String stringTime;
 
 
     /** Метод-обработчик поступающих сообщений. @param update объект, содержащий информацию о входящем сообщений*/
@@ -41,14 +46,11 @@ public class  Bot extends TelegramLongPollingBot{
         }
         commandDate(inText);
 
-
-
-
     }
 
     public void commandDate(String inText){
         if (inText.contains("/add")){
-            sendMessage("Введите дату в формате ДД-ММ-ГГГГ, текст напоминания и время напоминания по следующему примеру:'22-08-2019, купить хлеб, 22:00");
+            sendMessage("Введите дату в формате ДД-ММ-ГГГГ и текст напоминания по следующему примеру:'22-08-2019, купить хлеб");
             key = 1;
         }
     }
@@ -57,37 +59,10 @@ public class  Bot extends TelegramLongPollingBot{
         String [] parts = inText.split(",");
         stringData = parts[0];
         stringReminder = parts[1];
-        stringTime = parts[2];
-        sendMessage(stringData + " " + stringReminder + " " + stringTime);
+        sendMessage(stringData + " " + stringReminder);
         Date dateSql = getDate(stringData);
-        try
-        {
-            // create a mysql database connection
-            String myDriver = "org.postgresql.Driver";
-            String myUrl = "jdbc:postgresql://localhost:5432/reminder";
-            Class.forName(myDriver);
-            Connection conn = DriverManager.getConnection(myUrl, "postgres", "admin");
-
-            String query = " INSERT INTO notes (chatid, date ,text, timeremind) VALUES (?,?,?,?)";
-
-            // create the mysql insert preparedstatement
-            PreparedStatement preparedStmt = conn.prepareStatement(query);
-            preparedStmt.setLong (1, chatId);
-            preparedStmt.setDate (2, dateSql );
-            preparedStmt.setString (3, stringReminder);
-            preparedStmt.setString (4, stringTime);
-
-
-            // execute the preparedstatement
-            preparedStmt.execute();
-
-            conn.close();
-        }
-        catch (Exception e)
-        {
-            System.err.println("Got an exception!");
-            System.err.println(e.getMessage());
-        }
+        Records records = new Records(chatId, dateSql, stringReminder);
+        recordsService.createRecords(records);
     }
 
     public Date getDate(String stringData){
@@ -107,15 +82,15 @@ public class  Bot extends TelegramLongPollingBot{
 
     public void sendMessage (String outText){
         try {
-                //Создаем исходящее сообщение
-                SendMessage outMessage = new SendMessage();
-                //Указываем в какой чат будем отправлять сообщение
-                //(в тот же чат, откуда пришло входящее сообщение)
-                outMessage.setChatId(chatId);
-                //Указываем текст сообщения
-                outMessage.setText(outText);
-                //Отправляем сообщение
-                execute(outMessage);
+            //Создаем исходящее сообщение
+            SendMessage outMessage = new SendMessage();
+            //Указываем в какой чат будем отправлять сообщение
+            //(в тот же чат, откуда пришло входящее сообщение)
+            outMessage.setChatId(chatId);
+            //Указываем текст сообщения
+            outMessage.setText(outText);
+            //Отправляем сообщение
+            execute(outMessage);
 
         } catch (TelegramApiException e) {
             e.printStackTrace();

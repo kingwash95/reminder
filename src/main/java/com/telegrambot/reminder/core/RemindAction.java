@@ -29,7 +29,7 @@ public class RemindAction extends TimerTask {
         Date date2am = new java.util.Date();
         Calendar cal = Calendar.getInstance();
         cal.setTime(date2am);
-        cal.set(Calendar.HOUR_OF_DAY, 2);
+        cal.set(Calendar.HOUR_OF_DAY, 13);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
